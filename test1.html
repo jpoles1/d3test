@@ -1,0 +1,18 @@
+<html>
+  <head>
+    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+  </head>
+  <body>
+
+  </body>
+  <script type="text/javascript">
+    var data = [1, 2, 3];
+    var svg = d3.select("body").append("svg")
+      .attr("width", 200).attr("height", 200);
+    console.log(svg)
+    svg.selectAll("rect")
+      .data(data).enter().append("rect")
+      .attr("y", function(d){return d*10})
+      .attr("height", 10).attr("width", function(d){return d*10}).style("fill", "red")
+  </script>
+</html>
