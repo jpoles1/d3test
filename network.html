@@ -4,13 +4,17 @@
     <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
   </head>
   <body>
-    <div id="legend"></div>
+    <div id="legend">
+    </div>
   </body>
   <script type="text/javascript">
+    String.prototype.capitalize = function() {
+        return this.charAt(0).toUpperCase() + this.slice(1);
+    }
     function viz(dat, max, min, dayct){
       console.log(min, max)
       var xmargin = 120;
-      var ymargin = 80;
+      var ymargin = 40;
       var w = 1000;
       var h = 600;
       svg = d3.select("body").append("svg").attr("width", w+xmargin*2).attr("height", h+ymargin*2)
@@ -35,13 +39,13 @@
         circGroup.append("circle")
           .attr("cx", function(d){return scalex(d["dayofyear"])})
           .attr("cy", function(d){return scaley(d[sett])})
-          .attr("r", 4).attr("fill", colors[sett])
+          .attr("r", 4).attr("fill", colors[sett]).attr("class", "circ-"+sett)
         lab = circGroup.append("g").attr("class", "lab").attr("style", "display: none")
           .append("text")
           .attr("x", function(d){return scalex(d["dayofyear"])+5})
           .attr("y", function(d){return scaley(d[sett])-10})
         lab.append("tspan").text(function(d){return "Date: "+d["month"]+"/"+d["day"]+"/"+d["year"]})
-        lab.append("tspan").text(function(d){return sett+": "+d[sett]+" Mb"}).attr("dy", "15")
+        lab.append("tspan").text(function(d){return sett.capitalize()+": "+d[sett]+" Mb"}).attr("dy", "15")
           .attr("x", function(d){return scalex(d["dayofyear"])+5})
       }
       $("circle").hover(function(){
@@ -50,6 +54,23 @@
       },function(){
         $("circle").not(this).css("opacity", "1")
         $(this).siblings(".lab").css("display", "none")
+      })
+      colorsize = 16;
+      legend = d3.select("#legend").append("svg").attr("width", 200).attr("height", 60)
+        .append("g").attr("transform", "translate("+xmargin+", 15)")
+      y=10;
+      for(sett in colors){
+        legblock = legend.append("g").attr("id", "leg-"+sett).attr("class", "legendblock")
+          .attr("style", "cursor: hand").attr("target", sett)
+        legblock.append("rect").attr("y", y-13).attr("width", colorsize).attr("height", colorsize).
+          attr("fill", colors[sett])
+        legblock.append("text").text(sett.capitalize())
+          .attr("fill", "black").attr("y", y).attr("x", colorsize+10)
+        y+=25;
+      }
+      $(".legendblock").click(function(){
+        $(".circ-"+$(this).attr("target")).toggle()
+        $(this).children("rect").toggle()
       })
     }
     d3.xhr("data/network.txt", function(error, data){
