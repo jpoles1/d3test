@@ -1,0 +1,89 @@
+<html>
+  <head>
+    <script src="//d3js.org/d3.v3.min.js" charset="utf-8"></script>
+    <script src="http://code.jquery.com/jquery-2.1.4.min.js"></script>
+  </head>
+  <body>
+    <div id="legend"></div>
+  </body>
+  <script type="text/javascript">
+    function viz(dat, max, min, dayct){
+      console.log(min, max)
+      var xmargin = 120;
+      var ymargin = 80;
+      var w = 1000;
+      var h = 600;
+      svg = d3.select("body").append("svg").attr("width", w+xmargin*2).attr("height", h+ymargin*2)
+        .append("g").attr("transform", "translate("+xmargin+","+ymargin+")")
+      scaley = d3.scale.linear().domain([min, max]).range([h,0])
+      scalex = d3.scale.linear().domain([1, dayct]).range([0, w])
+      axisx = d3.svg.axis().scale(scalex).orient("bottom")
+      axisy = d3.svg.axis().scale(scaley).orient("left")
+      svg.append("g").attr("transform", "translate(0, "+h+")").call(axisx)
+      svg.append("g").call(axisy)
+      xlab = svg.append("text").text("Day of Year").attr("x", w/2).attr("y", h+60)
+        .attr("fill", "black").attr("text-anchor", "middle").attr("font-size", "20pt")
+      ylabx = -80;
+      ylaby = h/2;
+      ylab = svg.append("text").text("Upload/Download (Mb)")
+        .attr("x", ylabx).attr("y", ylaby).attr("transform", "rotate(-90, "+ylabx+","+ylaby+")")
+        .attr("fill", "black").attr("text-anchor", "middle").attr("font-size", "20pt")
+      colors = {"up": "red", "down": "blue"};
+      for(sett in colors){
+        circGroup = svg.append("g").attr("id", sett).attr("transform", "translate(10, -10)")
+          .selectAll("circle").data(dat).enter().append("g")
+        circGroup.append("circle")
+          .attr("cx", function(d){return scalex(d["dayofyear"])})
+          .attr("cy", function(d){return scaley(d[sett])})
+          .attr("r", 4).attr("fill", colors[sett])
+        lab = circGroup.append("g").attr("class", "lab").attr("style", "display: none")
+          .append("text")
+          .attr("x", function(d){return scalex(d["dayofyear"])+5})
+          .attr("y", function(d){return scaley(d[sett])-10})
+        lab.append("tspan").text(function(d){return "Date: "+d["month"]+"/"+d["day"]+"/"+d["year"]})
+        lab.append("tspan").text(function(d){return sett+": "+d[sett]+" Mb"}).attr("dy", "15")
+          .attr("x", function(d){return scalex(d["dayofyear"])+5})
+      }
+      $("circle").hover(function(){
+        $("circle").not(this).css("opacity", ".2")
+        $(this).siblings(".lab").css("display", "inline")
+      },function(){
+        $("circle").not(this).css("opacity", "1")
+        $(this).siblings(".lab").css("display", "none")
+      })
+    }
+    d3.xhr("data/network.txt", function(error, data){
+      var rawtxt = data.response;
+      var lines = rawtxt.split("\n");
+      var cleandata = [];
+      var dayofyear = 1;
+      for(i in lines){
+        if(i > 0 && i%2 != 1){
+          var row = lines[i];
+          var maxval = 0;
+          var minval = 10000;
+          var rowspl = row.split("=");
+          var date = rowspl[0].replace("traff-", "")
+          var datespl = date.split("-")
+          var month = parseInt(datespl[0])
+          var year = parseInt(datespl[1])
+          var days = rowspl[1].split(" ")
+          for(day in days){
+            var dayspl = days[day].split(":")
+            var down = parseInt(dayspl[0])
+            var up = parseInt(dayspl[1])
+            var max = Math.max(down, up)
+            var min = Math.min(down, up)
+            if(max > maxval){maxval = max}
+            if(min < minval){minval = min}
+            if(up && down){
+              cleandata.push({"dayofyear": dayofyear, "month": month, "year": year, "day": parseInt(day), "down": down, "up": up});
+            }
+            dayofyear += 1;
+          }
+        }
+      }
+      viz(cleandata, maxval, minval, dayofyear);
+    });
+  </script>
+</html>

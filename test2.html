@@ -16,6 +16,7 @@
       yinter = h/1000
       for(prop in data[0]){
         if(prop!="time"){
+
           var line = d3.svg.line()
             .x(function(d){return d["time"]*xinter}).y(function(d){return h-(d[prop]*yinter)})
             .interpolate("linear")
