@@ -17,7 +17,7 @@
       var ymargin = 40;
       var w = 1000;
       var h = 600;
-      svg = d3.select("body").append("svg").attr("width", w+xmargin*2).attr("height", h+ymargin*2)
+      svg = d3.select("body").append("svg").attr("width", w+xmargin*2).attr("height", h+ymargin*2+40)
         .append("g").attr("transform", "translate("+xmargin+","+ymargin+")")
       scaley = d3.scale.linear().domain([min, max]).range([h,0])
       scalex = d3.scale.linear().domain([1, dayct]).range([0, w])
